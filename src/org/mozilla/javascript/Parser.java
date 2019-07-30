@@ -1290,7 +1290,9 @@ public class Parser
           case Token.EOF:
           case Token.RC:
               // Autoinsert ;
-              warnMissingSemi(pos, nodeEnd(pn));
+              // Token.EOF can have negative length and negative nodeEnd(pn).
+              // So, make the end position at least pos+1.
+              warnMissingSemi(pos, Math.max(pos + 1, nodeEnd(pn)));
               break;
           default:
               if ((ttFlagged & TI_AFTER_EOL) == 0) {
@@ -2571,9 +2573,9 @@ public class Parser
     {
         AstNode node;
         int tt = peekToken();
-        if(tt == Token.COMMENT) {
+        if (tt == Token.COMMENT) {
             consumeToken();
-            tt = peekToken();
+            tt = peekUntilNonComment(tt);
         }
         int line = ts.lineno;
 
